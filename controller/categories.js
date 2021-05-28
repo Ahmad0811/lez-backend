@@ -28,6 +28,7 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
   const storeId = req.params.storeId;
   const name = req.body.name;
+  const logo = req.body.logo[0].thumbUrl;
 
   const checkStore = await db
     .select()
@@ -39,90 +40,41 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 
   // console.log(check);
   if (checkStore.length != 0) {
-    if (!req.files) {
-      return next(new ErrorResponse(`Please upload a file`, 400));
-    }
-    const file = req.files.file;
-    if (!file.mimetype.startsWith('image')) {
-      return next(new ErrorResponse(`Please upload an image file`, 400));
-    }
-
-    if (file.size > 1000000) {
-      return next(
-        new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-      );
-    }
-
-    file.name = `category_${uniqid()}${path.parse(file.name).ext}`;
-
-    file.mv(`./public/uploads/${file.name}`, async (err) => {
-      if (err) {
-        console.error(err);
-        return next(new ErrorResponse(`Problem with file upload`, 500));
-      }
-    });
-
-    const category = await db('categories')
-      .insert({
+    try {
+      const id = await db('categories').insert({
         store_id: storeId,
         name: name,
-        logo: file.name
-      })
-      .catch((err) => {
-        return next(err);
-      })
-      .then(function (row) {
-        return db.select().from('categories').where('category_id', row[0]);
-      })
-      .catch((err) => {
-        return next(err);
+        logo: logo
       });
+      const category = await db
+        .select()
+        .from('categories')
+        .where('category_id', id[0]);
 
-    return res.status(201).json({
-      success: true,
-      count: category.length,
-      data: category[0],
-      msg: 'Category has been created'
-    });
+      return res.status(201).json({
+        success: true,
+        count: category.length,
+        data: category[0],
+        msg: 'Category has been created'
+      });
+    } catch (error) {
+      return next(error);
+    }
   } else {
     return next(new ErrorResponse(`No store found with id of ${storeId}`, 404));
   }
 });
 
-// @desc    Create category
+// @desc    Update category
 // @route   PUT /api/categories/:categoryId
 // @access  Private
 exports.updateCategory = asyncHandler(async (req, res, next) => {
-  // TODO logo and checking data
   const categoryId = req.params.categoryId;
   const name = req.body.name;
 
-  if (!req.files) {
-    return next(new ErrorResponse(`Please upload a file`, 400));
-  }
-  const file = req.files.file;
-  if (!file.mimetype.startsWith('image')) {
-    return next(new ErrorResponse(`Please upload an image file`, 400));
-  }
-
-  if (file.size > 1000000) {
-    return next(
-      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-    );
-  }
-
-  file.name = `category_${uniqid()}${path.parse(file.name).ext}`;
-
-  file.mv(`./public/uploads/${file.name}`, async (err) => {
-    if (err) {
-      console.error(err);
-      return next(new ErrorResponse(`Problem with file upload`, 500));
-    }
-  });
-
   const category = await db('categories')
     .where('category_id', categoryId)
-    .update({ name: name, logo: file.name });
+    .update({ name: name });
 
   if (category == []) {
     return next(

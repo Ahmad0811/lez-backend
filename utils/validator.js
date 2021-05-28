@@ -11,12 +11,6 @@ exports.validateStore = [
     .isLength({ min: 3 })
     .withMessage('Minimum 3 characters required!')
     .bail(),
-  check('description')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('Store Description is required')
-    .bail(),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())

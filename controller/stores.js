@@ -42,35 +42,14 @@ exports.getStore = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.createStore = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
-  const { name, description } = req.body;
+  const { name, description, logo } = req.body;
 
-  if (!req.files) {
-    return next(new ErrorResponse(`Please upload a file`, 400));
-  }
-  const file = req.files.file;
-  if (!file.mimetype.startsWith('image')) {
-    return next(new ErrorResponse(`Please upload an image file`, 400));
-  }
-
-  if (file.size > 1000000) {
-    return next(
-      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-    );
-  }
-
-  file.name = `store_${uniqid()}${path.parse(file.name).ext}`;
-
-  file.mv(`./public/uploads/${file.name}`, async (err) => {
-    if (err) {
-      console.error(err);
-      return next(new ErrorResponse(`Problem with file upload`, 500));
-    }
-  });
+  const file = logo[0].thumbUrl ? logo[0].thumbUrl : '';
 
   const store = await db('stores')
     .insert({
       name: name,
-      logo: file.name,
+      logo: file,
       description: description
     })
     .catch((err) => {
@@ -96,35 +75,12 @@ exports.createStore = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.updateStore = asyncHandler(async (req, res, next) => {
   const storeId = req.params.storeId;
-  // TODO logo and checking data
-  const { name, description } = req.body;
 
-  if (!req.files) {
-    return next(new ErrorResponse(`Please upload a file`, 400));
-  }
-  const file = req.files.file;
-  if (!file.mimetype.startsWith('image')) {
-    return next(new ErrorResponse(`Please upload an image file`, 400));
-  }
-
-  if (file.size > 1000000) {
-    return next(
-      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-    );
-  }
-
-  file.name = `store_${uniqid()}${path.parse(file.name).ext}`;
-
-  file.mv(`./public/uploads/${file.name}`, async (err) => {
-    if (err) {
-      console.error(err);
-      return next(new ErrorResponse(`Problem with file upload`, 500));
-    }
-  });
+  const { name, description, logo } = req.body;
 
   const store = await db('stores')
     .where('store_id', storeId)
-    .update({ name: name, description: description, logo: file.name })
+    .update({ name: name, description: description })
     .catch((err) => {
       return next(err);
     });

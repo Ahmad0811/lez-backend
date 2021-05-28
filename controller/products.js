@@ -6,41 +6,19 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route   GET /api/products
 // @access  Private
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  // TODO simplify
-  if (req.query.categoryId) {
-    const products = await db
-      .select()
-      .from('products')
-      .where({ category_id: req.query.categoryId });
+  const { categoryId, storeId } = req.params;
 
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      data: products,
-      msg: null
-    });
-  } else if (req.query.storeId) {
-    const products = await db
-      .select()
-      .from('products')
-      .where({ store_id: req.query.storeId });
+  const products = await db
+    .select()
+    .from('products')
+    .where({ category_id: categoryId, store_id: storeId });
 
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      data: products,
-      msg: null
-    });
-  } else {
-    const products = await db.select().from('products');
-
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      data: products,
-      msg: null
-    });
-  }
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    data: products,
+    msg: null
+  });
 });
 
 // @desc    Get product by id
@@ -72,8 +50,8 @@ exports.getProduct = asyncHandler(async (req, res, next) => {
 exports.createProduct = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
   const { categoryId, storeId } = req.params;
-  const { name, price } = req.body;
-
+  const { name, price, logo } = req.body;
+  const file = logo[0].thumbUrl ? logo[0].thumbUrl : '';
   const checkStore = await db
     .select()
     .from('stores')
@@ -92,35 +70,12 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 
   if (checkStore.length != 0) {
     if (checkCategory != 0) {
-      if (!req.files) {
-        return next(new ErrorResponse(`Please upload a file`, 400));
-      }
-      const file = req.files.file;
-      if (!file.mimetype.startsWith('image')) {
-        return next(new ErrorResponse(`Please upload an image file`, 400));
-      }
-
-      if (file.size > 1000000) {
-        return next(
-          new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-        );
-      }
-
-      file.name = `product_${uniqid()}${path.parse(file.name).ext}`;
-
-      file.mv(`./public/uploads/${file.name}`, async (err) => {
-        if (err) {
-          console.error(err);
-          return next(new ErrorResponse(`Problem with file upload`, 500));
-        }
-      });
-
       const product = await db('products')
         .insert({
           store_id: storeId,
           category_id: categoryId,
           name: name,
-          img: file.name,
+          logo: file,
           price: price
         })
         .catch((err) => {
@@ -157,32 +112,9 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
   const { name, price } = req.body;
 
-  if (!req.files) {
-    return next(new ErrorResponse(`Please upload a file`, 400));
-  }
-  const file = req.files.file;
-  if (!file.mimetype.startsWith('image')) {
-    return next(new ErrorResponse(`Please upload an image file`, 400));
-  }
-
-  if (file.size > 1000000) {
-    return next(
-      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
-    );
-  }
-
-  file.name = `product_${uniqid()}${path.parse(file.name).ext}`;
-
-  file.mv(`./public/uploads/${file.name}`, async (err) => {
-    if (err) {
-      console.error(err);
-      return next(new ErrorResponse(`Problem with file upload`, 500));
-    }
-  });
-
   const product = await db('products')
     .where('product_id', productId)
-    .update({ name: name, img: file.name, price: price });
+    .update({ name: name, price: price });
 
   if (product == []) {
     return next(

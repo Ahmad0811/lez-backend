@@ -22,7 +22,7 @@ const Products = () => {
   useEffect(() => {
     return getProducts(storeId, categoryId);
   }, []);
-  // console.log('hii');
+
   const [visible, setVisible] = useState(false);
 
   const onCreate = (values) => {

@@ -37,15 +37,6 @@ const VirtualTable = (props) => {
     return obj;
   });
 
-  // const resetVirtualGrid = () => {
-  //   gridRef.current.resetAfterIndices({
-  //     columnIndex: 0,
-  //     shouldForceUpdate: true
-  //   });
-  // };
-
-  // useEffect(() => resetVirtualGrid, [tableWidth]);
-
   const renderVirtualList = (rawData, { scrollbarSize, ref, onScroll }) => {
     ref.current = connectObject;
     const totalHeight = rawData.length * 54;
@@ -102,7 +93,7 @@ const VirtualTable = (props) => {
       />
     </ResizeObserver>
   );
-}; // Usage
+};
 
 const VirtualizedTable = () => {
   const storeContext = useContext(StoreContext);
@@ -127,7 +118,6 @@ const VirtualizedTable = () => {
   useEffect(() => {
     return getStores();
   }, []);
-  // console.log(stores);
 
   return (
     <Fragment>

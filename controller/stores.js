@@ -1,6 +1,4 @@
 const db = require('../db/db');
-const path = require('path');
-const uniqid = require('uniqid');
 const asyncHandler = require('../middleware/async');
 const ErrorResponse = require('../utils/errorResponse');
 
@@ -41,7 +39,6 @@ exports.getStore = asyncHandler(async (req, res, next) => {
 // @route   POST /api/stores
 // @access  Private
 exports.createStore = asyncHandler(async (req, res, next) => {
-  // TODO logo and checking data
   const { name, description, logo } = req.body;
 
   const file = logo[0].thumbUrl ? logo[0].thumbUrl : '';

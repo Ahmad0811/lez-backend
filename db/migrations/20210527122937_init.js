@@ -1,12 +1,3 @@
-exports.up = function (knex) {
-  // return knex.schema.createTable('users', (table) => {
-  //   table.increments('user_id');
-  //   table.string('email').notNullable().unique();
-  //   table.string('password').notNullable();
-  //   table.timestamps(true, true);
-  // });
-};
+exports.up = function (knex) {};
 
-exports.down = function (knex) {
-  // return knex.schema.dropTable('users');
-};
+exports.down = function (knex) {};

@@ -48,7 +48,6 @@ exports.getProduct = asyncHandler(async (req, res, next) => {
 // @route   POST /api/products
 // @access  Private
 exports.createProduct = asyncHandler(async (req, res, next) => {
-  // TODO logo and checking data
   const { categoryId, storeId } = req.params;
   const { name, price, logo } = req.body;
   const file = logo[0].thumbUrl ? logo[0].thumbUrl : '';
@@ -109,7 +108,7 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.updateProduct = asyncHandler(async (req, res, next) => {
   const productId = req.params.productId;
-  // TODO logo and checking data
+
   const { name, price } = req.body;
 
   const product = await db('products')

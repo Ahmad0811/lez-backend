@@ -25,7 +25,6 @@ exports.getAllCategoriesForStore = asyncHandler(async (req, res, next) => {
 // @route   POST /api/stores/:storeId/categories
 // @access  Private
 exports.createCategory = asyncHandler(async (req, res, next) => {
-  // TODO logo and checking data
   const storeId = req.params.storeId;
   const name = req.body.name;
   const logo = req.body.logo[0].thumbUrl;
@@ -38,7 +37,6 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
       return next(err);
     });
 
-  // console.log(check);
   if (checkStore.length != 0) {
     try {
       const id = await db('categories').insert({

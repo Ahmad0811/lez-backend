@@ -39,10 +39,34 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 
   // console.log(check);
   if (checkStore.length != 0) {
+    if (!req.files) {
+      return next(new ErrorResponse(`Please upload a file`, 400));
+    }
+    const file = req.files.file;
+    if (!file.mimetype.startsWith('image')) {
+      return next(new ErrorResponse(`Please upload an image file`, 400));
+    }
+
+    if (file.size > 1000000) {
+      return next(
+        new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
+      );
+    }
+
+    file.name = `category_${uniqid()}${path.parse(file.name).ext}`;
+
+    file.mv(`./public/uploads/${file.name}`, async (err) => {
+      if (err) {
+        console.error(err);
+        return next(new ErrorResponse(`Problem with file upload`, 500));
+      }
+    });
+
     const category = await db('categories')
       .insert({
         store_id: storeId,
-        name: name
+        name: name,
+        logo: file.name
       })
       .catch((err) => {
         return next(err);
@@ -73,9 +97,32 @@ exports.updateCategory = asyncHandler(async (req, res, next) => {
   const categoryId = req.params.categoryId;
   const name = req.body.name;
 
+  if (!req.files) {
+    return next(new ErrorResponse(`Please upload a file`, 400));
+  }
+  const file = req.files.file;
+  if (!file.mimetype.startsWith('image')) {
+    return next(new ErrorResponse(`Please upload an image file`, 400));
+  }
+
+  if (file.size > 1000000) {
+    return next(
+      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
+    );
+  }
+
+  file.name = `category_${uniqid()}${path.parse(file.name).ext}`;
+
+  file.mv(`./public/uploads/${file.name}`, async (err) => {
+    if (err) {
+      console.error(err);
+      return next(new ErrorResponse(`Problem with file upload`, 500));
+    }
+  });
+
   const category = await db('categories')
     .where('category_id', categoryId)
-    .update({ name: name });
+    .update({ name: name, logo: file.name });
 
   if (category == []) {
     return next(

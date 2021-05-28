@@ -92,11 +92,35 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 
   if (checkStore.length != 0) {
     if (checkCategory != 0) {
+      if (!req.files) {
+        return next(new ErrorResponse(`Please upload a file`, 400));
+      }
+      const file = req.files.file;
+      if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse(`Please upload an image file`, 400));
+      }
+
+      if (file.size > 1000000) {
+        return next(
+          new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
+        );
+      }
+
+      file.name = `product_${uniqid()}${path.parse(file.name).ext}`;
+
+      file.mv(`./public/uploads/${file.name}`, async (err) => {
+        if (err) {
+          console.error(err);
+          return next(new ErrorResponse(`Problem with file upload`, 500));
+        }
+      });
+
       const product = await db('products')
         .insert({
           store_id: storeId,
           category_id: categoryId,
           name: name,
+          img: file.name,
           price: price
         })
         .catch((err) => {
@@ -133,9 +157,32 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
   const { name, price } = req.body;
 
+  if (!req.files) {
+    return next(new ErrorResponse(`Please upload a file`, 400));
+  }
+  const file = req.files.file;
+  if (!file.mimetype.startsWith('image')) {
+    return next(new ErrorResponse(`Please upload an image file`, 400));
+  }
+
+  if (file.size > 1000000) {
+    return next(
+      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
+    );
+  }
+
+  file.name = `product_${uniqid()}${path.parse(file.name).ext}`;
+
+  file.mv(`./public/uploads/${file.name}`, async (err) => {
+    if (err) {
+      console.error(err);
+      return next(new ErrorResponse(`Problem with file upload`, 500));
+    }
+  });
+
   const product = await db('products')
     .where('product_id', productId)
-    .update({ name: name, price: price });
+    .update({ name: name, img: file.name, price: price });
 
   if (product == []) {
     return next(

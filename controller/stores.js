@@ -44,9 +44,33 @@ exports.createStore = asyncHandler(async (req, res, next) => {
   // TODO logo and checking data
   const { name, description } = req.body;
 
+  if (!req.files) {
+    return next(new ErrorResponse(`Please upload a file`, 400));
+  }
+  const file = req.files.file;
+  if (!file.mimetype.startsWith('image')) {
+    return next(new ErrorResponse(`Please upload an image file`, 400));
+  }
+
+  if (file.size > 1000000) {
+    return next(
+      new ErrorResponse(`Please upload an image less than ${1000000}`, 400)
+    );
+  }
+
+  file.name = `store_${uniqid()}${path.parse(file.name).ext}`;
+
+  file.mv(`./public/uploads/${file.name}`, async (err) => {
+    if (err) {
+      console.error(err);
+      return next(new ErrorResponse(`Problem with file upload`, 500));
+    }
+  });
+
   const store = await db('stores')
     .insert({
       name: name,
+      logo: file.name,
       description: description
     })
     .catch((err) => {
